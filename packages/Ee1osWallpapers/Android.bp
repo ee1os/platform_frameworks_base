@@ -1,0 +1,11 @@
+package {
+    default_applicable_licenses: ["frameworks_base_license"],
+}
+
+// The wallpapers the picker offers, as a partner customization package (no code). The picker
+// finds it by the PARTNER_CUSTOMIZATION receiver and reads res/xml/wallpapers.xml.
+android_app {
+    name: "Ee1osWallpapers",
+    sdk_version: "current",
+    product_specific: true,
+}

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_label">Wallpapers</string>
+    <string name="category_earth">Earth</string>
+    <string name="wp_earth">Blue Marble</string>
+    <string name="src_earth" translatable="false">NASA</string>
+    <string name="wp_earth_night">Black Marble</string>
+    <string name="src_earth_night" translatable="false">NASA</string>
+    <string name="wp_aurora">Aurora from the ISS</string>
+    <string name="src_aurora" translatable="false">NASA</string>
+    <string name="wp_glacier">Malaspina Glacier</string>
+    <string name="src_glacier" translatable="false">NASA</string>
+    <string name="category_planets">Planets</string>
+    <string name="wp_mars">Mars</string>
+    <string name="src_mars" translatable="false">NASA, Viking</string>
+    <string name="wp_valles">Valles Marineris</string>
+    <string name="src_valles" translatable="false">NASA, Viking</string>
+    <string name="wp_jupiter">Jupiter</string>
+    <string name="src_jupiter" translatable="false">NASA/ESA, Hubble</string>
+    <string name="wp_io">Io</string>
+    <string name="src_io" translatable="false">NASA, Galileo</string>
+    <string name="wp_saturn_rings">Saturn from above</string>
+    <string name="src_saturn_rings" translatable="false">NASA, Cassini</string>
+    <string name="wp_saturn">Saturn at equinox</string>
+    <string name="src_saturn" translatable="false">NASA, Cassini</string>
+    <string name="wp_pillars">Pillars of Creation</string>
+    <string name="src_pillars" translatable="false">NASA/ESA, Hubble</string>
+    <string name="category_abstract">Abstract</string>
+    <string name="wp_aosp">Android</string>
+    <string name="src_aosp" translatable="false">AOSP</string>
+    <string name="wp_ink">Ink</string>
+    <string name="src_ink" translatable="false">ee1os</string>
+    <string name="wp_hills">Hills at dawn</string>
+    <string name="src_hills" translatable="false">ee1os</string>
+    <string name="wp_frost">Frosted glass</string>
+    <string name="src_frost" translatable="false">ee1os</string>
+    <string name="wp_contours">Contours</string>
+    <string name="src_contours" translatable="false">ee1os</string>
+    <string name="wp_steps">Steps</string>
+    <string name="src_steps" translatable="false">ee1os</string>
+    <string name="category_dark">Dark</string>
+    <string name="wp_protected_ink">Red ink</string>
+    <string name="src_protected_ink" translatable="false">AOSP</string>
+    <string name="wp_velvet">Velvet</string>
+    <string name="src_velvet" translatable="false">ee1os</string>
+    <string name="wp_ember">Embers</string>
+    <string name="src_ember" translatable="false">ee1os</string>
+    <string name="wp_vault">Vault</string>
+    <string name="src_vault" translatable="false">ee1os</string>
+    <string name="wp_red_contours">Red contours</string>
+    <string name="src_red_contours" translatable="false">ee1os</string>
+    <string name="wp_glow">Glow</string>
+    <string name="src_glow" translatable="false">ee1os</string>
+    <!-- the picker lists its built-in wallpaper (the default) on its own otherwise; it is in the collections -->
+    <bool name="default_wallpapper_hidden">true</bool>
+</resources>

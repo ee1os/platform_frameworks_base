@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wallpaper collections for the picker (WallpaperParserImpl.parseSystemCategories). -->
+<wallpapers>
+    <category id="earth" title="@string/category_earth" thumbnail="@drawable/wp_earth_thumb">
+        <static-wallpaper id="ee1os_earth" src="@drawable/wp_earth" thumbnail="@drawable/wp_earth_thumb" title="@string/wp_earth" subtitle1="@string/src_earth" />
+        <static-wallpaper id="ee1os_earth_night" src="@drawable/wp_earth_night" thumbnail="@drawable/wp_earth_night_thumb" title="@string/wp_earth_night" subtitle1="@string/src_earth_night" />
+        <static-wallpaper id="ee1os_aurora" src="@drawable/wp_aurora" thumbnail="@drawable/wp_aurora_thumb" title="@string/wp_aurora" subtitle1="@string/src_aurora" />
+        <static-wallpaper id="ee1os_glacier" src="@drawable/wp_glacier" thumbnail="@drawable/wp_glacier_thumb" title="@string/wp_glacier" subtitle1="@string/src_glacier" />
+    </category>
+    <category id="planets" title="@string/category_planets" thumbnail="@drawable/wp_mars_thumb">
+        <static-wallpaper id="ee1os_mars" src="@drawable/wp_mars" thumbnail="@drawable/wp_mars_thumb" title="@string/wp_mars" subtitle1="@string/src_mars" />
+        <static-wallpaper id="ee1os_valles" src="@drawable/wp_valles" thumbnail="@drawable/wp_valles_thumb" title="@string/wp_valles" subtitle1="@string/src_valles" />
+        <static-wallpaper id="ee1os_jupiter" src="@drawable/wp_jupiter" thumbnail="@drawable/wp_jupiter_thumb" title="@string/wp_jupiter" subtitle1="@string/src_jupiter" />
+        <static-wallpaper id="ee1os_io" src="@drawable/wp_io" thumbnail="@drawable/wp_io_thumb" title="@string/wp_io" subtitle1="@string/src_io" />
+        <static-wallpaper id="ee1os_saturn_rings" src="@drawable/wp_saturn_rings" thumbnail="@drawable/wp_saturn_rings_thumb" title="@string/wp_saturn_rings" subtitle1="@string/src_saturn_rings" />
+        <static-wallpaper id="ee1os_saturn" src="@drawable/wp_saturn" thumbnail="@drawable/wp_saturn_thumb" title="@string/wp_saturn" subtitle1="@string/src_saturn" />
+        <static-wallpaper id="ee1os_pillars" src="@drawable/wp_pillars" thumbnail="@drawable/wp_pillars_thumb" title="@string/wp_pillars" subtitle1="@string/src_pillars" />
+    </category>
+    <category id="abstract" title="@string/category_abstract" thumbnail="@drawable/wp_aosp_thumb">
+        <static-wallpaper id="ee1os_aosp" src="@drawable/wp_aosp" thumbnail="@drawable/wp_aosp_thumb" title="@string/wp_aosp" subtitle1="@string/src_aosp" />
+        <static-wallpaper id="ee1os_ink" src="@drawable/wp_ink" thumbnail="@drawable/wp_ink_thumb" title="@string/wp_ink" subtitle1="@string/src_ink" />
+        <static-wallpaper id="ee1os_hills" src="@drawable/wp_hills" thumbnail="@drawable/wp_hills_thumb" title="@string/wp_hills" subtitle1="@string/src_hills" />
+        <static-wallpaper id="ee1os_frost" src="@drawable/wp_frost" thumbnail="@drawable/wp_frost_thumb" title="@string/wp_frost" subtitle1="@string/src_frost" />
+        <static-wallpaper id="ee1os_contours" src="@drawable/wp_contours" thumbnail="@drawable/wp_contours_thumb" title="@string/wp_contours" subtitle1="@string/src_contours" />
+        <static-wallpaper id="ee1os_steps" src="@drawable/wp_steps" thumbnail="@drawable/wp_steps_thumb" title="@string/wp_steps" subtitle1="@string/src_steps" />
+    </category>
+    <category id="dark" title="@string/category_dark" thumbnail="@drawable/wp_protected_ink_thumb">
+        <static-wallpaper id="ee1os_protected_ink" src="@drawable/wp_protected_ink" thumbnail="@drawable/wp_protected_ink_thumb" title="@string/wp_protected_ink" subtitle1="@string/src_protected_ink" />
+        <static-wallpaper id="ee1os_velvet" src="@drawable/wp_velvet" thumbnail="@drawable/wp_velvet_thumb" title="@string/wp_velvet" subtitle1="@string/src_velvet" />
+        <static-wallpaper id="ee1os_ember" src="@drawable/wp_ember" thumbnail="@drawable/wp_ember_thumb" title="@string/wp_ember" subtitle1="@string/src_ember" />
+        <static-wallpaper id="ee1os_vault" src="@drawable/wp_vault" thumbnail="@drawable/wp_vault_thumb" title="@string/wp_vault" subtitle1="@string/src_vault" />
+        <static-wallpaper id="ee1os_red_contours" src="@drawable/wp_red_contours" thumbnail="@drawable/wp_red_contours_thumb" title="@string/wp_red_contours" subtitle1="@string/src_red_contours" />
+        <static-wallpaper id="ee1os_glow" src="@drawable/wp_glow" thumbnail="@drawable/wp_glow_thumb" title="@string/wp_glow" subtitle1="@string/src_glow" />
+    </category>
+</wallpapers>

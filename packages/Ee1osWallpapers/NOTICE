@@ -1,0 +1,22 @@
+Image sources (res/drawable-nodpi)
+
+NASA, public domain (via Wikimedia Commons):
+  wp_earth          The Blue Marble (remastered), Apollo 17
+  wp_earth_night    Black Marble Americas, Suomi NPP
+  wp_aurora         ISS-44 Night Earth Observation of an Aurora Australis
+  wp_glacier        Malaspina Glacier, Alaska (2749), Landsat
+  wp_pillars        Pillars of Creation 2014, HST WFC3-UVIS (denoised)
+  wp_mars           Planet Mars, Valles Marineris, Viking Orbiter 1980
+  wp_valles         Valles Marineris, PIA00178
+  wp_jupiter        Jupiter, Hubble Space Telescope, June 2019 (edited)
+  wp_io             Io, highest resolution true color, Galileo
+  wp_saturn_rings   Top view of the rings of Saturn, Cassini, 2013-10-10
+  wp_saturn         Saturn during Equinox, Cassini
+
+AOSP, Apache 2.0:
+  wp_aosp           frameworks/base core/res default_wallpaper
+  wp_protected_ink  the same image, red, made for the protected space
+
+Made for ee1os:
+  wp_ink, wp_hills, wp_frost, wp_velvet, wp_ember, wp_vault   generated images
+  wp_contours, wp_steps, wp_red_contours, wp_glow             drawn by a script

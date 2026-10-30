@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_label">Обои</string>
+    <string name="category_earth">Земля</string>
+    <string name="wp_earth">Blue Marble</string>
+    <string name="wp_earth_night">Black Marble</string>
+    <string name="wp_aurora">Полярное сияние с МКС</string>
+    <string name="wp_glacier">Ледник Маласпина</string>
+    <string name="category_planets">Планеты</string>
+    <string name="wp_mars">Марс</string>
+    <string name="wp_valles">Долины Маринер</string>
+    <string name="wp_jupiter">Юпитер</string>
+    <string name="wp_io">Ио</string>
+    <string name="wp_saturn_rings">Сатурн сверху</string>
+    <string name="wp_saturn">Сатурн в равноденствие</string>
+    <string name="wp_pillars">Столпы Творения</string>
+    <string name="category_abstract">Абстракция</string>
+    <string name="wp_aosp">Android</string>
+    <string name="wp_ink">Чернила</string>
+    <string name="wp_hills">Холмы на рассвете</string>
+    <string name="wp_frost">Матовое стекло</string>
+    <string name="wp_contours">Изолинии</string>
+    <string name="wp_steps">Ступени</string>
+    <string name="category_dark">Тёмные</string>
+    <string name="wp_protected_ink">Красные чернила</string>
+    <string name="wp_velvet">Бархат</string>
+    <string name="wp_ember">Угли</string>
+    <string name="wp_vault">Сейф</string>
+    <string name="wp_red_contours">Красные изолинии</string>
+    <string name="wp_glow">Жар</string>
+</resources>
