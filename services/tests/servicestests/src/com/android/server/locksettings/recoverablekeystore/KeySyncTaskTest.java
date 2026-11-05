@@ -961,9 +961,9 @@ public class KeySyncTaskTest {
     }
 
     private void setExpectedScryptArgument(LockscreenCredential credential) {
-        // Duplicate the credential here, since the caller may zeroize the original copy before the
-        // invocation happens.
-        byte[] credentialBytes = credential.duplicate().getCredential();
+        // Copy the bytes here, since the caller may zeroize the credential before the invocation
+        // happens. A duplicate() kept only for its bytes can be zeroized by its finalizer.
+        byte[] credentialBytes = credential.getCredential().clone();
         doAnswer(invocation -> {
             assertThat((byte[]) invocation.getArguments()[0]).isEqualTo(credentialBytes);
             return invocation.callRealMethod();
