@@ -1585,6 +1585,14 @@ class StorageManagerService extends IStorageManager.Stub
                     args.argi2 = newState;
                     mHandler.obtainMessage(H_VOLUME_STATE_CHANGED, args).sendToTarget();
                     onVolumeStateChangedLocked(vInfo, newState);
+                    // A stick that was still being checked during a user switch was skipped
+                    // there and has now mounted for the previous user. If the new user is still
+                    // locked, the remount on its unlock takes care of it.
+                    if (newState == VolumeInfo.STATE_MOUNTED
+                            && vol.getType() == VolumeInfo.TYPE_PUBLIC
+                            && !mRemountCurrentUserVolumesOnUnlock) {
+                        maybeRemountVolumes(mCurrentUserId);
+                    }
                 }
             }
         }
