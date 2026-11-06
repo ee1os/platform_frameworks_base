@@ -1373,7 +1373,7 @@ class StorageManagerService extends IStorageManager.Stub
         synchronized (mLock) {
             for (int i = 0; i < mVolumes.size(); i++) {
                 final WatchedVolumeInfo vol = mVolumes.valueAt(i);
-                if (!vol.isPrimary() && vol.isMountedWritable() && vol.isVisible()
+                if (followsCurrentUser(vol) && vol.isMountedWritable()
                         && vol.getMountUserId() != mCurrentUserId) {
                     // If there's a visible secondary volume mounted,
                     // we need to update the currentUserId and remount
@@ -1402,10 +1402,17 @@ class StorageManagerService extends IStorageManager.Stub
      */
     private void updateVolumeMountIdIfRequired(WatchedVolumeInfo vol) {
         synchronized (mLock) {
-            if (!vol.isPrimary() && vol.isVisible() && vol.getMountUserId() != mCurrentUserId) {
+            if (followsCurrentUser(vol) && vol.getMountUserId() != mCurrentUserId) {
                 vol.setMountUserId(mCurrentUserId);
             }
         }
+    }
+
+    // A USB stick is a public volume that is never visible (DiskInfo.isAdoptable() is false). It
+    // moves with the current user too, or it stays with the user it was mounted for.
+    private boolean followsCurrentUser(WatchedVolumeInfo vol) {
+        return !vol.isPrimary()
+                && (vol.isVisible() || vol.getType() == VolumeInfo.TYPE_PUBLIC);
     }
 
     /**
