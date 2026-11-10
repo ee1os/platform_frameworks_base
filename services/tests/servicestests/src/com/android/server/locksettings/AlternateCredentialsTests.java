@@ -10,13 +10,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.content.pm.UserInfo;
+import android.os.UserManager;
 import android.platform.test.annotations.Presubmit;
 
 import androidx.test.filters.SmallTest;
@@ -669,6 +674,52 @@ public class AlternateCredentialsTests extends BaseLockSettingsServiceTests {
         // check itself needs the keyguard permission
         int[] matched = {-1};
         assertThat(mService.dispatchCredential(newPin(OWNER), matched).isMatched()).isTrue();
+    }
+
+    // setup and the admin flag of the protected user
+
+    @Test
+    public void provisioning_createsTheProtectedUserAsAnAdmin() {
+        mService.initializeSyntheticPassword(SECONDARY_USER_ID);
+        when(mUserManager.createUser(anyString(), anyString(), anyInt()))
+                .thenReturn(mSecondaryUserInfo);
+
+        assertThat(mService.provisionProtectedSpaceInternal(newPin(OWNER), newPin(PROTECTED),
+                null, null, null)).isEqualTo(SECONDARY_USER_ID);
+        verify(mUserManager).createUser("Protected", UserManager.USER_TYPE_FULL_SECONDARY,
+                UserInfo.FLAG_ADMIN);
+        verify(mUserManager, never()).removeUser(anyInt());
+    }
+
+    @Test
+    public void provisioning_failureRemovesTheProtectedUser() {
+        mService.initializeSyntheticPassword(SECONDARY_USER_ID);
+        when(mUserManager.createUser(anyString(), anyString(), anyInt()))
+                .thenReturn(mSecondaryUserInfo);
+        doThrow(new IllegalStateException("test")).when(mUserManager).setUserRestriction(
+                eq(UserManager.DISALLOW_RUN_IN_BACKGROUND), eq(true), any());
+
+        assertThrows(IllegalStateException.class, () -> mService.provisionProtectedSpaceInternal(
+                newPin(OWNER), newPin(PROTECTED), null, null, null));
+        verify(mUserManager).removeUser(SECONDARY_USER_ID);
+    }
+
+    @Test
+    public void protectedUserBecomesAnAdminOnce() {
+        when(mService.duressPasswordHelper.getAuthorityUserId()).thenReturn(SECONDARY_USER_ID);
+        mService.makeProtectedUserAdmin();
+        verify(mUserManager).setUserAdmin(SECONDARY_USER_ID);
+
+        // an admin already: no second call
+        mSecondaryUserInfo.flags |= UserInfo.FLAG_ADMIN;
+        mService.makeProtectedUserAdmin();
+        verify(mUserManager).setUserAdmin(SECONDARY_USER_ID);
+    }
+
+    @Test
+    public void noAdminChangeWithoutAProtectedSpace() {
+        mService.makeProtectedUserAdmin();
+        verify(mUserManager, never()).setUserAdmin(anyInt());
     }
 
     // a protected space as lock_settings sees it: B is the authority, the length is stored

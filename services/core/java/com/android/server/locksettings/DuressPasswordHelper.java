@@ -225,7 +225,7 @@ public class DuressPasswordHelper {
      * the alternate credentials. The reboot credential was enrolled against the previous one's
      * credential and is deleted; the duress credentials are device-wide and stay.
      */
-    void setAuthority(int userId, int serialNumber) {
+    protected void setAuthority(int userId, int serialNumber) {
         synchronized (alternatesLock) {
             setAuthorityLocked(userId, serialNumber);
         }

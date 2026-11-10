@@ -1252,6 +1252,28 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             mThirdPartyAppsStarted = true;
         }
+        // outside the lock: the user manager calls into this service when users change
+        makeProtectedUserAdmin();
+    }
+
+    // Protected spaces set up before they were created as admins get the flag once, at the
+    // next boot.
+    @VisibleForTesting
+    void makeProtectedUserAdmin() {
+        final int authority = duressPasswordHelper.getAuthorityUserId();
+        if (authority == UserHandle.USER_SYSTEM) {
+            return;
+        }
+        UserInfo user = mUserManager.getUserInfo(authority);
+        if (user == null || user.partial || user.isAdmin()) {
+            return;
+        }
+        try {
+            mUserManager.setUserAdmin(authority);
+            Slog.i(TAG, "protected user " + authority + " is now an admin");
+        } catch (RuntimeException e) {
+            Slog.e(TAG, "couldn't make protected user " + authority + " an admin", e);
+        }
     }
 
     @GuardedBy("mSpManager")
@@ -4894,7 +4916,8 @@ public class LockSettingsService extends ILockSettings.Stub {
     // one protected space setup at a time
     private final Object mProvisionLock = new Object();
 
-    private int provisionProtectedSpaceInternal(LockscreenCredential owner,
+    @VisibleForTesting
+    int provisionProtectedSpaceInternal(LockscreenCredential owner,
             LockscreenCredential protectedPin, LockscreenCredential duressPin,
             LockscreenCredential duressPassword, LockscreenCredential reboot) {
         checkLayoutPin(owner, "owner credential");
@@ -4956,8 +4979,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             @Nullable LockscreenCredential duressPin,
             @Nullable LockscreenCredential duressPassword,
             @Nullable LockscreenCredential reboot, int ownerChanges) {
+        // an admin, so that users can be managed from its Settings; the protected user id, not
+        // the flag, decides who manages the alternates (doc 04, Roles)
         UserInfo user = mUserManager.createUser("Protected",
-                UserManager.USER_TYPE_FULL_SECONDARY, 0);
+                UserManager.USER_TYPE_FULL_SECONDARY, UserInfo.FLAG_ADMIN);
         if (user == null) {
             throw new IllegalStateException("couldn't create the protected user");
         }
