@@ -63,6 +63,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.android.internal.R;
 import com.android.internal.util.ArrayUtils;
+import com.android.internal.widget.LockPatternUtils;
 import com.android.settingslib.Utils;
 import com.android.settingslib.utils.ThreadUtils;
 
@@ -813,7 +814,18 @@ public class ApplicationsState {
         if (android.multiuser.Flags.dontShowOtherUsersAppsToAdmin()) {
             return mRetrieveFlags;
         } else {
-            return mUm.isUserAdmin(userId) ? mAdminRetrieveFlags : mRetrieveFlags;
+            return mUm.isUserAdmin(userId) && !isProtectedSpaceHidden()
+                    ? mAdminRetrieveFlags : mRetrieveFlags;
+        }
+    }
+
+    // User 0 of a device with a protected space: the authority call answers USER_NULL there,
+    // and the apps of other users stay out of its lists.
+    private boolean isProtectedSpaceHidden() {
+        try {
+            return new LockPatternUtils(mContext).getAlternatesAuthority() == UserHandle.USER_NULL;
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 
