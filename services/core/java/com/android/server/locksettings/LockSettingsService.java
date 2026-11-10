@@ -4638,6 +4638,17 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     /**
+     * The alternates that user 0's PIN keeps from firing, for the protected space's Settings.
+     * Answered for the calling user only, with no exception for trusted callers: the shell
+     * runs in user 0, and user 0 must not learn whether its PIN equals an alternate.
+     */
+    @Override
+    public int getUnreachableAlternates() {
+        checkHavePermission();
+        return duressPasswordHelper.getUnreachableAlternates(UserHandle.getCallingUserId());
+    }
+
+    /**
      * Makes {@code userId} the user that manages the alternate credentials. Only system_server
      * itself (the shell command runs there) and the shell may change it: the user it takes the
      * alternates from can't refuse, and UID 1000 also covers user 0's Settings.

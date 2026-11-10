@@ -27,6 +27,7 @@ import android.platform.test.annotations.Presubmit;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 
@@ -816,5 +817,136 @@ public class AlternateCredentialsTests extends BaseLockSettingsServiceTests {
                 SECONDARY_USER_ID));
         mHelper.setRebootCredential(newPin(PROTECTED), nonePassword(), newPin(REBOOT),
                 SECONDARY_USER_ID);
+    }
+
+    // user 0's own PIN changes are never refused; an alternate they shadow is reported to the
+    // protected space instead
+
+    private void protectedSpaceWithAlternates() {
+        makeSecondaryTheAuthority();
+        mHelper.setDuressCredentials(newPin(PROTECTED), newPin(DURESS_PIN),
+                newPassword(DURESS_PASSWORD), SECONDARY_USER_ID);
+        mHelper.setRebootCredential(newPin(PROTECTED), nonePassword(), newPin(REBOOT),
+                SECONDARY_USER_ID);
+    }
+
+    private void ownerPinChanged(String pin) {
+        mHelper.onLockCredentialChanged(newPin(pin), Primary, PRIMARY_USER_ID);
+        flushHelper();
+    }
+
+    private int unreachable() {
+        return mHelper.getUnreachableAlternates(SECONDARY_USER_ID);
+    }
+
+    @Test
+    public void unreachable_setWhenTheOwnersPinEqualsAnAlternate() {
+        protectedSpaceWithAlternates();
+
+        ownerPinChanged(DURESS_PIN);
+        assertThat(unreachable()).isEqualTo(LockPatternUtils.ALTERNATE_DURESS);
+        ownerPinChanged(REBOOT);
+        assertThat(unreachable()).isEqualTo(LockPatternUtils.ALTERNATE_REBOOT);
+        // nothing is deleted: the protected space still holds both
+        assertThat(mHelper.hasRebootCredential(newPin(PROTECTED), SECONDARY_USER_ID)).isTrue();
+        assertThat(mHelper.hasDuressCredentials(newPin(PROTECTED), SECONDARY_USER_ID)).isTrue();
+    }
+
+    @Test
+    public void unreachable_notSetForOtherPins() {
+        protectedSpaceWithAlternates();
+
+        ownerPinChanged("432100");
+        // the owner's second factor, and another user's PIN
+        mHelper.onLockCredentialChanged(newPin(DURESS_PIN), Secondary, PRIMARY_USER_ID);
+        mHelper.onLockCredentialChanged(newPin(REBOOT), Primary, TERTIARY_USER_ID);
+        flushHelper();
+
+        assertThat(unreachable()).isEqualTo(0);
+    }
+
+    @Test
+    public void unreachable_clearedWhenTheOwnersPinChangesAgain() {
+        protectedSpaceWithAlternates();
+        ownerPinChanged(DURESS_PIN);
+
+        ownerPinChanged("432100");
+        assertThat(unreachable()).isEqualTo(0);
+    }
+
+    @Test
+    public void unreachable_clearedWhenTheAlternateIsSetAgainOrDeleted() {
+        protectedSpaceWithAlternates();
+        ownerPinChanged(DURESS_PIN);
+        mStorage.setBoolean(RebootCredential.UNREACHABLE_KEY, true, PRIMARY_USER_ID);
+        assertThat(unreachable()).isEqualTo(
+                LockPatternUtils.ALTERNATE_DURESS | LockPatternUtils.ALTERNATE_REBOOT);
+
+        mHelper.setDuressCredentials(newPin(PROTECTED), newPin("888800"),
+                newPassword(DURESS_PASSWORD), SECONDARY_USER_ID);
+        assertThat(unreachable()).isEqualTo(LockPatternUtils.ALTERNATE_REBOOT);
+        mHelper.setRebootCredential(newPin(PROTECTED), nonePassword(), nonePassword(),
+                SECONDARY_USER_ID);
+        assertThat(unreachable()).isEqualTo(0);
+
+        // deleting duress clears its flag too
+        ownerPinChanged("888800");
+        assertThat(unreachable()).isEqualTo(LockPatternUtils.ALTERNATE_DURESS);
+        mHelper.setDuressCredentials(newPin(PROTECTED), nonePassword(), nonePassword(),
+                SECONDARY_USER_ID);
+        assertThat(unreachable()).isEqualTo(0);
+    }
+
+    @Test
+    public void unreachable_onlyTheAuthorityIsTold() {
+        protectedSpaceWithAlternates();
+        ownerPinChanged(DURESS_PIN);
+
+        assertThat(mHelper.getUnreachableAlternates(PRIMARY_USER_ID)).isEqualTo(0);
+        assertThat(mHelper.getUnreachableAlternates(TERTIARY_USER_ID)).isEqualTo(0);
+        assertThat(unreachable()).isEqualTo(LockPatternUtils.ALTERNATE_DURESS);
+
+        // the binder call asks for the calling user, here user 0, with no trusted exception
+        DuressPasswordHelper mock = mService.duressPasswordHelper;
+        reset(mock);
+        assertThat(mService.getUnreachableAlternates()).isEqualTo(0);
+        verify(mock).getUnreachableAlternates(PRIMARY_USER_ID);
+        // and the flags can't be read through the generic calls
+        assertThrows(SecurityException.class, () -> mService.getBoolean(
+                DuressCredentials.UNREACHABLE_KEY, false, PRIMARY_USER_ID));
+    }
+
+    @Test
+    public void unreachable_nothingWithoutAProtectedSpace() {
+        setDuress(DURESS_PIN, DURESS_PASSWORD);
+
+        ownerPinChanged(DURESS_PIN);
+
+        assertThat(mHelper.getUnreachableAlternates(PRIMARY_USER_ID)).isEqualTo(0);
+        assertThat(mStorage.getString(DuressCredentials.UNREACHABLE_KEY, null, PRIMARY_USER_ID))
+                .isNull();
+    }
+
+    @Test
+    public void unreachable_ownerChangeDoesTheSameWorkEitherWay() {
+        protectedSpaceWithAlternates();
+
+        // the change itself only hands a copy to the background thread; both records are
+        // written whether or not one matched
+        ownerPinChanged("432100");
+        assertThat(mStorage.getString(DuressCredentials.UNREACHABLE_KEY, null, PRIMARY_USER_ID))
+                .isNotNull();
+        assertThat(mStorage.getString(RebootCredential.UNREACHABLE_KEY, null, PRIMARY_USER_ID))
+                .isNotNull();
+    }
+
+    @Test
+    public void unreachable_clearedWhenTheAuthorityChanges() {
+        protectedSpaceWithAlternates();
+        ownerPinChanged(DURESS_PIN);
+
+        mHelper.onUserRemoved(SECONDARY_USER_ID);
+        mHelper.setAuthority(SECONDARY_USER_ID, SECONDARY_SERIAL);
+        assertThat(unreachable()).isEqualTo(0);
     }
 }

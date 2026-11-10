@@ -25,6 +25,8 @@ import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABL
 class RebootCredential {
     static final String LOCK_SETTINGS_STORAGE_KEY = "reboot_credential";
     private static final int LOCK_SETTINGS_STORAGE_USER_ID = UserHandle.USER_SYSTEM;
+    // set while user 0's PIN equals the stored reboot PIN, see DuressPasswordHelper
+    static final String UNREACHABLE_KEY = "reboot_credential_unreachable";
 
     private static final int VERSION = 0;
 
@@ -40,6 +42,7 @@ class RebootCredential {
         }
         lss.setString(LOCK_SETTINGS_STORAGE_KEY, HexEncoding.encodeToString(bos.toByteArray()),
                 LOCK_SETTINGS_STORAGE_USER_ID);
+        lss.removeKey(UNREACHABLE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
     }
 
     /**
@@ -121,5 +124,6 @@ class RebootCredential {
 
     static void delete(LockSettingsStorage lss) {
         lss.removeKey(LOCK_SETTINGS_STORAGE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
+        lss.removeKey(UNREACHABLE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
     }
 }

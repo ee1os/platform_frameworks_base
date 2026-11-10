@@ -40,9 +40,12 @@ class DuressCredentials {
 
     static final String LOCK_SETTINGS_STORAGE_KEY = "duress_credentials";
     private static final int LOCK_SETTINGS_STORAGE_USER_ID = UserHandle.USER_SYSTEM;
+    // set while user 0's PIN equals the stored duress PIN, see DuressPasswordHelper
+    static final String UNREACHABLE_KEY = "duress_credentials_unreachable";
 
     void save(LockSettingsStorage lss) {
         lss.setString(LOCK_SETTINGS_STORAGE_KEY, serialize(), LOCK_SETTINGS_STORAGE_USER_ID);
+        lss.removeKey(UNREACHABLE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
     }
 
     @Nullable
@@ -56,6 +59,7 @@ class DuressCredentials {
 
     static void delete(LockSettingsStorage lss) {
         lss.removeKey(LOCK_SETTINGS_STORAGE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
+        lss.removeKey(UNREACHABLE_KEY, LOCK_SETTINGS_STORAGE_USER_ID);
     }
 
     DuressCredential get(int type) {

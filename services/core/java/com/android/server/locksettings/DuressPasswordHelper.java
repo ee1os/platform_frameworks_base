@@ -18,6 +18,8 @@ import java.util.UUID;
 
 import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockDomain.Secondary;
+import static com.android.internal.widget.LockPatternUtils.ALTERNATE_DURESS;
+import static com.android.internal.widget.LockPatternUtils.ALTERNATE_REBOOT;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -51,7 +53,8 @@ public class DuressPasswordHelper {
     /** Records only this class may read or write, never through the generic key calls. */
     static final Set<String> RESERVED_KEYS = Set.of(AUTHORITY_KEY, AUTHORITY_SERIAL_KEY,
             DuressCredentials.LOCK_SETTINGS_STORAGE_KEY, RebootCredential.LOCK_SETTINGS_STORAGE_KEY,
-            LockSettingsService.LAYOUT_PIN_LENGTH_KEY);
+            LockSettingsService.LAYOUT_PIN_LENGTH_KEY, DuressCredentials.UNREACHABLE_KEY,
+            RebootCredential.UNREACHABLE_KEY);
 
     // successful verifications per user, a queued reboot is dropped when this changes
     @GuardedBy("verifiedCount")
@@ -179,6 +182,9 @@ public class DuressPasswordHelper {
             LockDomain lockDomain, int userId) {
         synchronized (alternatesLock) {
             if (userId != authorityLocked()) {
+                if (userId == UserHandle.USER_SYSTEM && lockDomain == Primary) {
+                    checkUnreachableLater(newCredential);
+                }
                 return;
             }
             ownerCredentialChanges++;
@@ -204,6 +210,74 @@ public class DuressPasswordHelper {
                 Slog.e(TAG, "reboot credential check after a change failed: "
                         + e.getClass().getSimpleName());
             }
+        }
+    }
+
+    // With a protected space, user 0's PIN is tried first at the lock screen, so a duress or
+    // reboot PIN equal to it never fires. User 0's change is not refused or checked visibly
+    // for that (doc 04, decision 2026-10-13); the authority is told instead. The comparison
+    // runs on the background thread, after the change has returned, and stretches against
+    // every stored record whether or not one matches, so the change returns the same result
+    // in the same time either way. Nothing about the result is logged.
+    private void checkUnreachableLater(LockscreenCredential ownerCredential) {
+        // the caller zeroizes its credential after this returns
+        LockscreenCredential copy = ownerCredential.duplicate();
+        backgroundThread.getThreadHandler().post(() -> {
+            try {
+                updateUnreachable(copy);
+            } finally {
+                copy.zeroize();
+            }
+        });
+    }
+
+    @VisibleForTesting
+    void updateUnreachable(LockscreenCredential ownerCredential) {
+        synchronized (alternatesLock) {
+            if (authorityLocked() == UserHandle.USER_SYSTEM) {
+                return;
+            }
+            boolean duress = false;
+            boolean reboot = false;
+            try {
+                duress = isDuressCredential(ownerCredential);
+            } catch (RuntimeException e) {
+                Slog.e(TAG, "duress check failed: " + e.getClass().getSimpleName());
+            }
+            try {
+                reboot = isRebootCredential(ownerCredential);
+            } catch (RuntimeException e) {
+                Slog.e(TAG, "reboot check failed: " + e.getClass().getSimpleName());
+            }
+            // both written every time, also when nothing matched
+            lockSettingsStorage.setBoolean(DuressCredentials.UNREACHABLE_KEY, duress,
+                    UserHandle.USER_SYSTEM);
+            lockSettingsStorage.setBoolean(RebootCredential.UNREACHABLE_KEY, reboot,
+                    UserHandle.USER_SYSTEM);
+        }
+    }
+
+    /**
+     * The alternates that user 0's current PIN keeps from firing, as
+     * {@code LockPatternUtils.ALTERNATE_*} bits. Only the authority of a protected space gets
+     * them; every other user, user 0 included, gets 0.
+     */
+    protected int getUnreachableAlternates(int userId) {
+        synchronized (alternatesLock) {
+            final int authority = authorityLocked();
+            if (authority == UserHandle.USER_SYSTEM || userId != authority) {
+                return 0;
+            }
+            int alternates = 0;
+            if (lockSettingsStorage.getBoolean(DuressCredentials.UNREACHABLE_KEY, false,
+                    UserHandle.USER_SYSTEM)) {
+                alternates |= ALTERNATE_DURESS;
+            }
+            if (lockSettingsStorage.getBoolean(RebootCredential.UNREACHABLE_KEY, false,
+                    UserHandle.USER_SYSTEM)) {
+                alternates |= ALTERNATE_REBOOT;
+            }
+            return alternates;
         }
     }
 
@@ -239,6 +313,8 @@ public class DuressPasswordHelper {
         }
         ownerCredentialChanges++;
         RebootCredential.delete(lockSettingsStorage);
+        // only user 0's changes under a protected space keep it current
+        lockSettingsStorage.removeKey(DuressCredentials.UNREACHABLE_KEY, UserHandle.USER_SYSTEM);
         if (userId == UserHandle.USER_SYSTEM) {
             lockSettingsStorage.removeKey(AUTHORITY_KEY, UserHandle.USER_SYSTEM);
             lockSettingsStorage.removeKey(AUTHORITY_SERIAL_KEY, UserHandle.USER_SYSTEM);

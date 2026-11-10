@@ -2321,6 +2321,24 @@ public class LockPatternUtils {
         return getAlternatesAuthority() == mContext.getUserId();
     }
 
+    /** {@link #getUnreachableAlternates}: user 0's PIN is the duress PIN. */
+    public static final int ALTERNATE_DURESS = 1;
+    /** {@link #getUnreachableAlternates}: user 0's PIN is the reboot PIN. */
+    public static final int ALTERNATE_REBOOT = 1 << 1;
+
+    /**
+     * The alternates that can't fire because user 0, which the lock screen tries first, uses
+     * the same PIN, as {@code ALTERNATE_*} bits. Only the protected space that manages them
+     * gets an answer; every other user gets 0.
+     */
+    public int getUnreachableAlternates() {
+        try {
+            return getLockSettings().getUnreachableAlternates();
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     /**
      * The number of digits every PIN must have once a protected space exists, or 0 without one.
      */
