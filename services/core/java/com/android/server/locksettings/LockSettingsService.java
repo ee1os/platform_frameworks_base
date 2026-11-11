@@ -1248,6 +1248,9 @@ public class LockSettingsService extends ILockSettings.Stub {
                 UserInfo user = mUserManager.getUserInfo(authority);
                 duressPasswordHelper.dropStaleAuthority(authority,
                         user == null || user.partial ? -1 : user.serialNumber);
+                if (duressPasswordHelper.getAuthorityUserId() == UserHandle.USER_SYSTEM) {
+                    mHandler.post(this::clearProtectedSpaceSettings);
+                }
             }
 
             mThirdPartyAppsStarted = true;
@@ -3166,7 +3169,13 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private void removeUserState(@UserIdInt int userId) {
+        final boolean wasProtected = userId != UserHandle.USER_SYSTEM
+                && duressPasswordHelper.getAuthorityUserId() == userId;
         duressPasswordHelper.onUserRemoved(userId);
+        if (wasProtected) {
+            // not from here: the user manager is in the middle of the removal
+            mHandler.post(this::clearProtectedSpaceSettings);
+        }
         removeBiometricsForUser(userId);
         mSpManager.removeUser(getGateKeeperService(), userId);
         mStrongAuth.removeUser(userId);
@@ -4429,6 +4438,11 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
 
         @Override
+        public boolean hasProtectedSpace() {
+            return duressPasswordHelper.getAuthorityUserId() != UserHandle.USER_SYSTEM;
+        }
+
+        @Override
         public long addEscrowToken(byte[] token, int userId,
                 EscrowTokenStateChangeCallback callback) {
             return LockSettingsService.this.addEscrowToken(token, TOKEN_TYPE_STRONG, userId,
@@ -5092,16 +5106,27 @@ public class LockSettingsService extends ILockSettings.Stub {
         } catch (RuntimeException e) {
             Slog.e(TAG, "couldn't hand the alternates back to user 0", e);
         }
-        mUserManager.setUserRestriction(UserManager.DISALLOW_REMOVE_USER, false,
-                UserHandle.SYSTEM);
-        mUserManager.setUserRestriction(UserManager.DISALLOW_ADD_PRIVATE_PROFILE, false,
-                UserHandle.SYSTEM);
-        Settings.Global.putInt(mContext.getContentResolver(),
-                Settings.Global.USER_SWITCHER_ENABLED, 1);
-        Settings.Global.putInt(mContext.getContentResolver(),
-                Settings.Global.ALLOW_USER_SWITCHING_WHEN_SYSTEM_USER_LOCKED, 0);
+        clearProtectedSpaceSettings();
         if (!mUserManager.removeUser(userId)) {
             Slog.e(TAG, "couldn't remove user " + userId);
+        }
+    }
+
+    // What setup changed on user 0 and device-wide goes back when the protected space is gone:
+    // after a failed setup, and when the protected user is removed.
+    @VisibleForTesting
+    void clearProtectedSpaceSettings() {
+        try {
+            mUserManager.setUserRestriction(UserManager.DISALLOW_REMOVE_USER, false,
+                    UserHandle.SYSTEM);
+            mUserManager.setUserRestriction(UserManager.DISALLOW_ADD_PRIVATE_PROFILE, false,
+                    UserHandle.SYSTEM);
+            Settings.Global.putInt(mContext.getContentResolver(),
+                    Settings.Global.USER_SWITCHER_ENABLED, 1);
+            Settings.Global.putInt(mContext.getContentResolver(),
+                    Settings.Global.ALLOW_USER_SWITCHING_WHEN_SYSTEM_USER_LOCKED, 0);
+        } catch (RuntimeException e) {
+            Slog.e(TAG, "couldn't put back the settings of the protected space", e);
         }
     }
 

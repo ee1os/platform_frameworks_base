@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.pm.UserInfo;
+import android.os.UserHandle;
 import android.os.UserManager;
 import android.platform.test.annotations.Presubmit;
 
@@ -721,6 +722,22 @@ public class AlternateCredentialsTests extends BaseLockSettingsServiceTests {
     public void noAdminChangeWithoutAProtectedSpace() {
         mService.makeProtectedUserAdmin();
         verify(mUserManager, never()).setUserAdmin(anyInt());
+    }
+
+    @Test
+    public void hasProtectedSpace_followsTheAuthority() {
+        assertThat(mLocalService.hasProtectedSpace()).isFalse();
+        when(mService.duressPasswordHelper.getAuthorityUserId()).thenReturn(SECONDARY_USER_ID);
+        assertThat(mLocalService.hasProtectedSpace()).isTrue();
+    }
+
+    @Test
+    public void clearingTheProtectedSpaceSettingsFreesUserZero() {
+        mService.clearProtectedSpaceSettings();
+        verify(mUserManager).setUserRestriction(UserManager.DISALLOW_REMOVE_USER, false,
+                UserHandle.SYSTEM);
+        verify(mUserManager).setUserRestriction(UserManager.DISALLOW_ADD_PRIVATE_PROFILE, false,
+                UserHandle.SYSTEM);
     }
 
     // a protected space as lock_settings sees it: B is the authority, the length is stored

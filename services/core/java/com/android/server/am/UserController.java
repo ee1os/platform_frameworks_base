@@ -2738,8 +2738,11 @@ class UserController implements Handler.Callback {
         if (oldUserId == UserHandle.USER_SYSTEM) {
             return;
         }
+        // With a protected space every user but user 0 is stopped and locked when it is left,
+        // also one added later that has no restriction of its own.
         boolean hasRestriction =
-                hasUserRestriction(UserManager.DISALLOW_RUN_IN_BACKGROUND, oldUserId);
+                hasUserRestriction(UserManager.DISALLOW_RUN_IN_BACKGROUND, oldUserId)
+                        || mInjector.hasProtectedSpace();
         synchronized (mLock) {
             // If running in background is disabled or mStopUserOnSwitch mode, stop the user.
             if (hasRestriction || isStopUserOnSwitchEnabled()) {
@@ -4568,6 +4571,11 @@ class UserController implements Handler.Callback {
                 mLockSettingsInternal = LocalServices.getService(LockSettingsInternal.class);
             }
             return mLockSettingsInternal;
+        }
+
+        boolean hasProtectedSpace() {
+            final LockSettingsInternal lockSettings = getLockSettingsInternal();
+            return lockSettings != null && lockSettings.hasProtectedSpace();
         }
 
         PowerManagerInternal getPowerManagerInternal() {

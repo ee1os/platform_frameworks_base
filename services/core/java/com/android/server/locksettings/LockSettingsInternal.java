@@ -139,6 +139,13 @@ public abstract class LockSettingsInternal {
     public abstract void lockUser(@UserIdInt int userId);
 
     /**
+     * True while the device has a protected space, a user other than user 0 that manages the
+     * alternate credentials. The lock screen is user 0's then, and every other user is stopped
+     * and locked when it is left.
+     */
+    public abstract boolean hasProtectedSpace();
+
+    /**
      * Notifies LockSettingsService that secure lock device mode has been disabled.
      *
      * <p>When this method is called, the strong authentication flags set by secure lock device are
